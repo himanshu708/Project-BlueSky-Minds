@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Environment variables
+.env
+*.env
+
+# Database
+database/data/
+*.db
+*.sqlite
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Model files (if large)
+*.pkl
+*.h5
+*.joblib
+
+# Notebooks
+notebooks/.ipynb_checkpoints/
+
+# Cache
+.cache/
+backend/app/core/cache/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NASA Data Verification - WeatherOdds Pro</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .nasa-badge {
+            background: #0B3D91;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            margin: 0 auto 20px;
+            font-weight: bold;
+            text-align: center;
+            width: 100%;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        input, button {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-card h3 {
+            font-size: 12px;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .chart-container {
+            height: 400px;
+            margin: 30px 0;
+        }
+        .data-table {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #667eea;
+            color: white;
+            position: sticky;
+            top: 0;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+            color: #667eea;
+        }
+        .verification-badge {
+            background: #10b981;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nasa-badge">
+            🛰️ NASA MERRA-2 Satellite Data Verification
+        </div>
+        
+        <h1>🌍 Historical Weather Data from NASA</h1>
+        
+        <div class="controls">
+            <input type="number" id="latitude" placeholder="Latitude" value="30.3165" step="0.0001">
+            <input type="number" id="longitude" placeholder="Longitude" value="78.0322" step="0.0001">
+            <input type="number" id="startYear" placeholder="Start Year" value="2020" min="1980" max="2024">
+            <input type="number" id="endYear" placeholder="End Year" value="2024" min="1980" max="2024">
+            <button onclick="fetchNASAData()">📡 Fetch Real NASA Data</button>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            🛰️ Fetching authentic NASA satellite data... This proves we're using real data!
+        </div>
+
+        <div id="results" style="display: none;">
+            <div class="verification-badge" id="verificationBadge"></div>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <h3>Total Data Points</h3>
+                    <div class="value" id="totalMonths">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Avg Temp (°C)</h3>
+                    <div class="value" id="avgTemp">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Min Temp (°C)</h3>
+                    <div class="value" id="minTemp">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Max Temp (°C)</h3>
+                    <div class="value" id="maxTemp">0</div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="temperatureChart"></canvas>
+            </div>
+
+            <h2>📊 Raw NASA Data Sample (First 12 Months)</h2>
+            <div class="data-table">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Temperature (°C)</th>
+                            <th>Precipitation (mm)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let temperatureChart = null;
+
+        async function fetchNASAData() {
+            const lat = document.getElementById('latitude').value;
+            const lon = document.getElementById('longitude').value;
+            const startYear = document.getElementById('startYear').value;
+            const endYear = document.getElementById('endYear').value;
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+
+            try {
+                const response = await fetch(
+                    `http://localhost:8000/api/weather/verify-nasa-data?latitude=${lat}&longitude=${lon}&start_year=${startYear}&end_year=${endYear}`
+                );
+
+                const data = await response.json();
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('results').style.display = 'block';
+
+                // Update verification badge
+                document.getElementById('verificationBadge').innerHTML = `
+                    ✅ Data Verified: ${data.time_range.total_months} months of authentic ${data.data_source}
+                    <br><small>Source: ${data.verification.api_endpoint}</small>
+                `;
+
+                // Update stats
+                document.getElementById('totalMonths').textContent = data.time_range.total_months;
+                document.getElementById('avgTemp').textContent = data.statistics.temperature.mean;
+                document.getElementById('minTemp').textContent = data.statistics.temperature.min;
+                document.getElementById('maxTemp').textContent = data.statistics.temperature.max;
+
+                // Render chart
+                renderChart(data.full_data);
+
+                // Render table
+                renderTable(data.raw_data);
+
+            } catch (error) {
+                alert(`Error: ${error.message}. Make sure backend is running on localhost:8000`);
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function renderChart(data) {
+            const ctx = document.getElementById('temperatureChart').getContext('2d');
+            
+            if (temperatureChart) temperatureChart.destroy();
+
+            const labels = data.map(d => d.date);
+            const temperatures = data.map(d => d.temperature_c);
+            const precipitation = data.map(d => d.precipitation_mm);
+
+            temperatureChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Temperature (°C)',
+                        data: temperatures,
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        tension: 0.1,
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Precipitation (mm)',
+                        data: precipitation,
+                        borderColor: 'rgb(54, 162, 235)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        tension: 0.1,
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'NASA MERRA-2 Historical Data - Authentic Satellite Measurements',
+                            font: { size: 16 }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Date (Year-Month)'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Temperature (°C)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Precipitation (mm)'
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            data.forEach(record => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${record.date}</td>
+                    <td>${record.temperature_c !== null ? record.temperature_c : 'N/A'}</td>
+                    <td>${record.precipitation_mm !== null ? record.precipitation_mm : 'N/A'}</td>
+                `;
+            });
+        }
+
+        // Auto-load data on page load
+        window.addEventListener('load', () => {
+            fetchNASAData();
+        });
+    </script>
+</body>
+</html>

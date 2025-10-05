@@ -1,4 +1,4 @@
-# 🌤️ Weather Odds Pro - Installation & Usage Guide
+# 🌤️ Project-BlueSky-Minds - Installation & Usage Guide
 
 A revolutionary weather probability assessment tool using 30+ years of NASA data to predict weather patterns months in advance.
 
@@ -6,7 +6,7 @@ A revolutionary weather probability assessment tool using 30+ years of NASA data
 
 ## 📋 Table of Contents
 
-- [What is Weather Odds Pro?](#-what-is-weather-odds-pro)
+- [What is Project-BlueSky-Minds?](#-what-is-weather-odds-pro)
 - [Prerequisites](#-prerequisites)
 - [Installation](#-installation)
 - [Configuration](#-configuration)
@@ -16,9 +16,9 @@ A revolutionary weather probability assessment tool using 30+ years of NASA data
 
 ---
 
-## 🎯 What is Weather Odds Pro?
+## 🎯 What is Project-BlueSky-Minds?
 
-Weather Odds Pro is **NOT** another weather forecast app. It's a probability-based risk assessment tool that:
+Project-BlueSky-Minds is **NOT** another weather forecast app. It's a probability-based risk assessment tool that:
 
 - ✅ Analyzes **30+ years** of NASA historical weather data
 - ✅ Predicts weather patterns **2-3 months** in advance
@@ -496,7 +496,7 @@ Then access at `http://localhost:8001`
 
 **This is normal!** Here's why:
 
-- Weather Odds Pro uses **statistical probability** based on 30-year averages
+- Project-BlueSky-Minds uses **statistical probability** based on 30-year averages
 - It's designed for **long-term planning** (2-3 months ahead)
 - Traditional weather apps use **real-time atmospheric data** (accurate for 1-14 days)
 
@@ -647,7 +647,7 @@ pip install -r requirements.txt --upgrade
 
 ## 🎉 You're All Set!
 
-Your Weather Odds Pro installation is complete. Start making long-term weather predictions!
+Your Project-BlueSky-Minds installation is complete. Start making long-term weather predictions!
 
 **Next Steps:**
 1. Try predicting weather for your location 3 months ahead
